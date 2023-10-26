@@ -19,22 +19,17 @@ import requests
 from db import init_db_command
 from user_google import User
 
-
-
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
-
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
 
 try:
     init_db_command()
@@ -43,9 +38,11 @@ except sqlite3.OperationalError:
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
+
 
 @app.route("/")
 def index():
@@ -61,8 +58,10 @@ def index():
     else:
         return '<a class="button" href="/login">Google Login</a>'
 
+
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
+
 
 @app.route("/login")
 def login():
@@ -70,13 +69,13 @@ def login():
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
-
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=request.base_url + "/callback",
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
+
 
 @app.route("/login/callback")
 def callback():
@@ -118,7 +117,6 @@ def callback():
         id_=unique_id, name=users_name, email=users_email, profile_pic=picture
     )
 
-
     if not User.get(unique_id):
         User.create(unique_id, users_name, users_email, picture)
 
@@ -126,11 +124,13 @@ def callback():
 
     return redirect(url_for("index"))
 
+
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(ssl_context="adhoc")
