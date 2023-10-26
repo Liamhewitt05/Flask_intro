@@ -1,3 +1,6 @@
 black
 pylint
-flask
+requests==2.21.0
+oauthlib==3.0.1
+pyOpenSSL==19.0.0
+Flask-Login==0.4.1

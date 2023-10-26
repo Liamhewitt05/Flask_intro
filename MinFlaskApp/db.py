@@ -1,0 +1,1 @@
+init_db_command = 1
