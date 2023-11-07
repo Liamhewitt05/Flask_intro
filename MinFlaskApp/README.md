@@ -1,7 +1,3 @@
-# Resturang nettside
-
-Nettside for en resturang man kan bestille fra.
-
 ## Prerequisites
 
 Before starting, install the following tools:
@@ -14,6 +10,10 @@ For more information on these tools, see the public documentation on
 [Pip](https://pip.pypa.io/en/stable/installing/)
 
 ## Initial Setup
+```bash
+docker build -t
+docker run -p "5000:5000" 
+```
 
 ### Setup development PC
 From the root of your cloned repo, generate a virtual environment with a

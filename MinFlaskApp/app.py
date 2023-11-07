@@ -2,6 +2,7 @@
 import json
 import os
 import sqlite3
+from dotenv import load_dotenv
 
 # Third-party libraries
 from flask import Flask, redirect, request, url_for
@@ -18,6 +19,8 @@ import requests
 # Internal imports
 from db import init_db_command
 from user_google import User
+
+load_dotenv()
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
@@ -133,4 +136,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc")
+    app.run(ssl_context="adhoc", host="0.0.0.0")

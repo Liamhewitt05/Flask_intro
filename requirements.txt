@@ -6,3 +6,4 @@ pyOpenSSL
 flask<3
 werkzeug<3
 Flask-Login
+python-dotenv
