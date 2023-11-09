@@ -4,6 +4,6 @@ requests
 oauthlib
 pyOpenSSL
 flask<3
-werkzeug<3
+werkzeug<4
 Flask-Login
 python-dotenv
