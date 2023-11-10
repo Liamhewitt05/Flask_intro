@@ -3,9 +3,12 @@ import json
 import os
 import sqlite3
 from dotenv import load_dotenv
+from werkzeug.exceptions import abort
+from dataclasses import dataclass
+
 
 # Third-party libraries
-from flask import Flask, redirect, request, url_for
+from flask import Flask, redirect, request, url_for, render_template, flash
 from flask_login import (
     LoginManager,
     current_user,
@@ -19,6 +22,52 @@ import requests
 # Internal imports
 from db import init_db_command
 from user_google import User
+
+@dataclass
+class Bok:
+    """klasse som holder bok navn og antall"""
+
+    navn: str
+    antall: int
+
+
+def last_inn_ledige_bøker():
+    """leser ledige bøker"""
+    data = open("Ledige_bøker.json", "r").read()
+    data = json.loads(data)
+    liste = []
+    for bok_navn, value in data["alle_boker"].items():
+        liste.append(Bok(navn=bok_navn, antall=value["antall"]))
+    return liste
+
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def get_all_books():
+    conn = get_db_connection()
+    books = conn.execute('SELECT * FROM books').fetchall()
+    conn.close()
+    return books
+
+
+def get_book(book_id):
+    conn = get_db_connection()
+    book = conn.execute('SELECT * FROM books WHERE id = ?',
+                        (book_id,)).fetchone()
+    conn.close()
+    return book
+
+
+def get_book_by_title(title):
+    conn = get_db_connection()
+    book = conn.execute('SELECT * FROM books WHERE title = ?',
+                        (title,)).fetchone()
+    conn.close()
+    return book
 
 load_dotenv()
 
@@ -60,7 +109,6 @@ def index():
         )
     else:
         return '<a class="button" href="/login">Google Login</a>'
-
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -113,6 +161,8 @@ def callback():
         users_email = userinfo_response.json()["email"]
         picture = userinfo_response.json()["picture"]
         users_name = userinfo_response.json()["given_name"]
+
+
     else:
         return "User email not available or not verified by Google.", 400
 
@@ -127,6 +177,82 @@ def callback():
 
     return redirect(url_for("index"))
 
+@app.route('/')
+def index():
+    books = get_all_books()
+    return render_template('index.html', books=books)
+
+
+@app.route('/<int:book_id>')
+def book(book_id):
+    book = get_book(book_id)
+    if book is None:
+        abort(404)
+
+    return render_template('book.html', book=book)
+
+
+@app.route('/create', methods=('GET', 'POST'))
+def create():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        count = request.form['count']
+
+        if not title:
+            flash('Title is required!')
+        elif not count or int(count) < 0:
+            flash('Antall må være 0 eller høyere')
+        elif not content:
+            flash('Content is required!')
+        else:
+            book = get_book_by_title(title)
+            if book:
+                flash('Title already exists!')
+            else:
+                conn = get_db_connection()
+                conn.execute('INSERT INTO books (title, content, count) VALUES (?, ?, ?)',
+                             (title, content, count))
+                conn.commit()
+                conn.close()
+                return redirect(url_for('index'))
+
+    return render_template('create.html')
+
+
+@app.route('/<int:id>/edit', methods=('GET', 'POST'))
+def edit(id):
+    book = get_book(id)
+    if book is None:
+        abort(404)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        summary = request.form['summary']
+        count = request.form['count']
+
+        conn = get_db_connection()
+        conn.execute('UPDATE books SET title = ?, summary = ?, count = ?'
+                     ' WHERE id = ?',
+                     (title, summary, count, id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+
+    return render_template('edit.html', book=book)
+
+
+@app.route('/<int:id>/delete', methods=('POST',))
+def delete(id):
+    post = get_book(id)
+    if post is None:
+        abort(404)
+    conn = get_db_connection()
+    conn.execute('DELETE FROM books WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('"{}" was successfully deleted!'.format(post['title']))
+    return redirect(url_for('index'))
 
 @app.route("/logout")
 @login_required
@@ -135,5 +261,5 @@ def logout():
     return redirect(url_for("index"))
 
 
-if __name__ == "__main__":
+if __name__ == "__app__":
     app.run(ssl_context="adhoc", host="0.0.0.0")

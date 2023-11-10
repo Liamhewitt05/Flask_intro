@@ -1,3 +1,15 @@
-<link rel="stylesheet" href="/static/css/style.css">
+{% extends 'base.html' %}
 
-<h1> Hello heihei</h1>
+{% block content %}
+    <h1>{% block title %} Bibliotek {% endblock %}</h1>
+    {% for book in books %}
+    <a href="{{ url_for('book', book_id=book['id']) }}">
+        <h2>{{ book['title'] }}</h2>
+    </a>
+    <span class="badge badge-primary">{{ book['created'] }}</span>
+    <a href="{{ url_for('edit', id=book['id']) }}">
+        <span class="badge badge-warning">Edit</span>
+    </a>
+    <hr>
+{% endfor %}
+{% endblock %}
