@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from werkzeug.exceptions import abort
 from dataclasses import dataclass
 
-
 # Third-party libraries
 from flask import Flask, redirect, request, url_for, render_template, flash
 from flask_login import (
@@ -22,6 +21,7 @@ import requests
 # Internal imports
 from db import init_db_command
 from user_google import User
+
 
 @dataclass
 class Bok:
@@ -69,6 +69,7 @@ def get_book_by_title(title):
     conn.close()
     return book
 
+
 load_dotenv()
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -98,17 +99,17 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
+    books = get_all_books()
     if current_user.is_authenticated:
-        return (
-            "<p>Hello, {}! You're logged in! Email: {}</p>"
-            "<div><p>Google Profile Picture:</p>"
-            '<img src="{}" alt="Google profile pic"></img></div>'
-            '<a class="button" href="/logout">Logout</a>'.format(
-                current_user.name, current_user.email, current_user.profile_pic
-            )
-        )
+        return render_template('index.html', books=books, current_user = current_user)
     else:
         return '<a class="button" href="/login">Google Login</a>'
+
+
+@app.route("/redirect")
+def redirect_to_index():
+    return render_template('redirect_to_index.html', current_user=current_user)
+
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -175,12 +176,7 @@ def callback():
 
     login_user(user)
 
-    return redirect(url_for("index"))
-
-@app.route('/')
-def index():
-    books = get_all_books()
-    return render_template('index.html', books=books)
+    return redirect(url_for("redirect_to_index"))
 
 
 @app.route('/<int:book_id>')
@@ -254,6 +250,7 @@ def delete(id):
     flash('"{}" was successfully deleted!'.format(post['title']))
     return redirect(url_for('index'))
 
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -261,5 +258,6 @@ def logout():
     return redirect(url_for("index"))
 
 
-if __name__ == "__app__":
+if __name__ == "__main__":
+
     app.run(ssl_context="adhoc", host="0.0.0.0")

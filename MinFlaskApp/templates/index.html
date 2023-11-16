@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
+
+
 {% block content %}
+    <a class="button" href="/logout">Logout</a>
     <h1>{% block title %} Bibliotek {% endblock %}</h1>
     {% for book in books %}
     <a href="{{ url_for('book', book_id=book['id']) }}">
