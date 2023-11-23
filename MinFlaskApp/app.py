@@ -198,7 +198,7 @@ def create():
         if not title:
             flash('Title is required!')
         elif not count or int(count) < 0:
-            flash('Antall må være 0 eller høyere')
+            flash('Antall må være 1 eller høyere')
         elif not content:
             flash('Content is required!')
         else:
