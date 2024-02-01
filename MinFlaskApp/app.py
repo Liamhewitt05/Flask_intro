@@ -5,6 +5,7 @@ import sqlite3
 from dotenv import load_dotenv
 from werkzeug.exceptions import abort
 from dataclasses import dataclass
+import SQL_to_csv
 
 # Third-party libraries
 from flask import Flask, redirect, request, url_for, render_template, flash
@@ -86,10 +87,10 @@ app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-#try:
-   # init_db_command()
-#except sqlite3.OperationalError:
-    #pass
+# try:
+# init_db_command()
+# except sqlite3.OperationalError:
+# pass
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
@@ -115,6 +116,10 @@ def redirect_to_index():
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
+
+
+def SQL_to_csv(edit):
+    return SQL_to_csv
 
 
 @app.route("/login")
@@ -218,7 +223,7 @@ def create():
                 conn.close()
                 return redirect(url_for('index'))
 
-    return render_template('create.html')
+    return render_template('create.html'), SQL_to_csv(edit)
 
 
 @app.route('/<int:id>/edit', methods=('GET', 'POST'))
@@ -240,7 +245,7 @@ def edit(id):
         conn.close()
         return redirect(url_for('index'))
 
-    return render_template('edit.html', book=book)
+    return render_template('edit.html', book=book), SQL_to_csv(edit)
 
 
 @app.route('/<int:id>/delete', methods=('POST',))
@@ -253,7 +258,7 @@ def delete(id):
     conn.commit()
     conn.close()
     flash('"{}" was successfully deleted!'.format(post['title']))
-    return redirect(url_for('index'))
+    return redirect(url_for('index')), SQL_to_csv(edit)
 
 
 @app.route("/logout")
