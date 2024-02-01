@@ -78,16 +78,18 @@ GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
 
+print(GOOGLE_CLIENT_ID)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-try:
-    init_db_command()
-except sqlite3.OperationalError:
-    pass
+#try:
+   # init_db_command()
+#except sqlite3.OperationalError:
+    #pass
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
@@ -101,7 +103,7 @@ def load_user(user_id):
 def index():
     books = get_all_books()
     if current_user.is_authenticated:
-        return render_template('index.html', books=books, current_user = current_user)
+        return render_template('index.html', books=books, current_user=current_user)
     else:
         return '<a class="button" href="/login">Google Login</a>'
 
@@ -120,12 +122,14 @@ def login():
     # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+    print(request.base_url + "/callback")
 
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=request.base_url + "/callback",
         scope=["openid", "email", "profile"],
     )
+    print(request_uri)
     return redirect(request_uri)
 
 
@@ -142,6 +146,7 @@ def callback():
         authorization_response=request.url,
         redirect_url=request.base_url,
         code=code
+
     )
     token_response = requests.post(
         token_url,
@@ -224,13 +229,13 @@ def edit(id):
 
     if request.method == 'POST':
         title = request.form['title']
-        summary = request.form['summary']
+        content = request.form['summary']
         count = request.form['count']
 
         conn = get_db_connection()
-        conn.execute('UPDATE books SET title = ?, summary = ?, count = ?'
+        conn.execute('UPDATE books SET title = ?, content = ?, count = ?'
                      ' WHERE id = ?',
-                     (title, summary, count, id))
+                     (title, content, count, id))
         conn.commit()
         conn.close()
         return redirect(url_for('index'))
@@ -259,5 +264,4 @@ def logout():
 
 
 if __name__ == "__main__":
-
     app.run(ssl_context="adhoc", host="0.0.0.0")
