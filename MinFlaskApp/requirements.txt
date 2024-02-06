@@ -7,3 +7,6 @@ flask<3
 werkzeug<4
 Flask-Login
 python-dotenv
+azure-storage-file-datalake
+azure-identity
+pandas

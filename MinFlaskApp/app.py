@@ -5,7 +5,7 @@ import sqlite3
 from dotenv import load_dotenv
 from werkzeug.exceptions import abort
 from dataclasses import dataclass
-import SQL_to_csv
+import upload_to_onelake
 
 # Third-party libraries
 from flask import Flask, redirect, request, url_for, render_template, flash

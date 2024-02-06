@@ -45,4 +45,17 @@ From the root of your cloned repo run the following:
 
 ```bash
 flask run --debug
+python app.py
 ```
+
+### To login to Azure
+````
+az login
+az login --allow-no-subscription
+````
+
+### To upload to onelake
+````
+python upload_to_onelake
+````
+
