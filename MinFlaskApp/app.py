@@ -90,7 +90,7 @@ def login():
 @app.route("/login/callback")
 def callback():
     """Callback form google login page"""
-    # Get authorization code Google sent back to you
+    # Finalise the login
     code = request.args.get("code")
 
     google_provider_cfg = get_google_provider_cfg()
@@ -110,10 +110,9 @@ def callback():
         auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
     )
 
-    # Parse the tokens!
     client.parse_request_body_response(json.dumps(token_response.json()))
 
-    # Call google to get informasion about user
+    # Call google to get informasion about logged in user
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)
@@ -133,7 +132,7 @@ def callback():
     )
 
     # Adds the user to database if they don't exist
-    if not User.get(unique_id):
+    if User.get(unique_id) == None:
         User.create(unique_id, users_name, users_email, picture)
 
     login_user(user)

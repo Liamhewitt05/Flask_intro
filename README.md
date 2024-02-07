@@ -59,13 +59,13 @@ python app.py
 
 ## Running the Fabric Upload Script
 
-### Install the Azure CLI
+### Install the Azure CLI if it doesn't exist
 
 ````
 winget install Microsoft.AzureCLI
 ````
 
-### To login to Azure
+### Login to Azure
 ````
 az login
 az login --allow-no-subscription
@@ -73,6 +73,7 @@ az login --allow-no-subscription
 
 ### To upload to onelake
 ````
-python upload_to_onelake
+cd Scripts\
+python upload_to_onelake.py
 ````
 
