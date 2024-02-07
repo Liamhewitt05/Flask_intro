@@ -57,12 +57,12 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--account_name", default="onelake", help="Account name")
     parser.add_argument(
         "-w", "--workspace_name",
-        default="e69ba6b4-7941-4077-b292-c78da9731b50",
+        default="81ebd6c4-e449-4d0d-a53d-bf9913c74630",
         help="GUID for workspace",
     )
     parser.add_argument(
         "-d", "--data_path",
-        default="4ebecced-0ca3-49fd-9fa7-076fced797d4/Files/books",
+        default="b81f64bb-fe0e-4495-a598-4b0b0fe48926/Files/books",
         help="GUID from ABFS path + folder",
     )
     parser.add_argument(
