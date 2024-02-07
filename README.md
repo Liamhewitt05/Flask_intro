@@ -9,6 +9,8 @@ For more information on these tools, see the public documentation on
 [Python](https://www.python.org/downloads/) or
 [Pip](https://pip.pypa.io/en/stable/installing/)
 
+Install [SQLite Viewer](https://marketplace.visualstudio.com/items?itemName=qwtel.sqlite-viewer)
+
 ## Initial Setup
 ```bash
 docker build -t
@@ -37,7 +39,7 @@ Next install any necessary packages.
 pip install -r requirements.txt
 ```
 
-## Running Locally
+## Running the Flask App Locally
 
 From the root of your cloned repo run the following:
 
@@ -54,6 +56,14 @@ To run with https
 cd MinFlaskApp
 python app.py
 ```
+
+## Running the Fabric Upload Script
+
+### Install the Azure CLI
+
+````
+winget install Microsoft.AzureCLI
+````
 
 ### To login to Azure
 ````

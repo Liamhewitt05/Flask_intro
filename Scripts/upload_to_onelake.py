@@ -11,7 +11,7 @@ import pandas as pd
 
 def get_db_connection() -> sqlite3.Connection:
     """creates a connection to the databse"""
-    conn = sqlite3.connect('..\MinFlaskApp\database.db')
+    conn = sqlite3.connect('..\MinFlaskApp\database.sqlite')
     conn.row_factory = sqlite3.Row
     return conn
 

@@ -16,7 +16,7 @@ from flask_login import (
 )
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-from MinFlaskApp.database import SQL_to_csv, get_all_books, get_book, get_book_by_title, get_db_connection
+from database import SQL_to_csv, get_all_books, get_book, get_book_by_title, get_db_connection
 
 # Internal imports
 from db import init_db_command
@@ -62,9 +62,9 @@ def index():
         return '<a class="button" href="/login">Google Login</a>'
 
 
-@app.route("/redirect")
-def redirect_to_index():
-    return render_template('redirect_to_index.html', current_user=current_user)
+@app.route("/show_user_then_redirect")
+def show_user_then_redirect():
+    return render_template('show_user_then_redirect.html', current_user=current_user)
 
 
 def get_google_provider_cfg():
@@ -74,17 +74,14 @@ def get_google_provider_cfg():
 @app.route("/login")
 def login():
     """Show a google login page"""
-    # Find out what URL to hit for Google login
+    # Create a URL to redirect to, for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-    print(request.base_url + "/callback")
-
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=request.base_url + "/callback",
         scope=["openid", "email", "profile"],
     )
-    print(request_uri)
 
     # Redirect to url
     return redirect(request_uri)
@@ -92,6 +89,7 @@ def login():
 
 @app.route("/login/callback")
 def callback():
+    """Callback form google login page"""
     # Get authorization code Google sent back to you
     code = request.args.get("code")
 
@@ -115,30 +113,33 @@ def callback():
     # Parse the tokens!
     client.parse_request_body_response(json.dumps(token_response.json()))
 
+    # Call google to get informasion about user
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
     userinfo_response = requests.get(uri, headers=headers, data=body)
 
+    # Extract informasion about user
     if userinfo_response.json().get("email_verified"):
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
         picture = userinfo_response.json()["picture"]
         users_name = userinfo_response.json()["given_name"]
-
-
     else:
         return "User email not available or not verified by Google.", 400
 
+    # Create a user object
     user = User(
         id_=unique_id, name=users_name, email=users_email, profile_pic=picture
     )
 
+    # Adds the user to database if they don't exist
     if not User.get(unique_id):
         User.create(unique_id, users_name, users_email, picture)
 
     login_user(user)
 
-    return redirect(url_for("redirect_to_index"))
+    # Redirect to show_user_then_redirect page
+    return redirect(url_for("show_user_then_redirect"))
 
 
 @app.route("/logout")
@@ -221,4 +222,4 @@ def delete(id):
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc", host="0.0.0.0")
+    app.run(ssl_context="adhoc", host="0.0.0.0", debug=True)
