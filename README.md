@@ -11,12 +11,6 @@ For more information on these tools, see the public documentation on
 
 Install [SQLite Viewer](https://marketplace.visualstudio.com/items?itemName=qwtel.sqlite-viewer)
 
-## Initial Setup
-```bash
-docker build -t
-docker run -p "5000:5000" 
-```
-
 ### Setup development PC
 From the root of your cloned repo, generate a virtual environment with a
 specific version of python.
