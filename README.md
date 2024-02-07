@@ -44,7 +44,14 @@ From the root of your cloned repo run the following:
 ### To run the web server
 
 ```bash
+cd MinFlaskApp
 flask run --debug
+```
+
+To run with https
+
+```bash
+cd MinFlaskApp
 python app.py
 ```
 

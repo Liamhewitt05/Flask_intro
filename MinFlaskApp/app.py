@@ -4,8 +4,6 @@ import os
 import sqlite3
 from dotenv import load_dotenv
 from werkzeug.exceptions import abort
-from dataclasses import dataclass
-import upload_to_onelake
 
 # Third-party libraries
 from flask import Flask, redirect, request, url_for, render_template, flash
@@ -18,57 +16,11 @@ from flask_login import (
 )
 from oauthlib.oauth2 import WebApplicationClient
 import requests
+from MinFlaskApp.database import SQL_to_csv, get_all_books, get_book, get_book_by_title, get_db_connection
 
 # Internal imports
 from db import init_db_command
 from user_google import User
-
-
-@dataclass
-class Bok:
-    """klasse som holder bok navn og antall"""
-
-    navn: str
-    antall: int
-
-
-def last_inn_ledige_bøker():
-    """leser ledige bøker"""
-    data = open("Ledige_bøker.json", "r").read()
-    data = json.loads(data)
-    liste = []
-    for bok_navn, value in data["alle_boker"].items():
-        liste.append(Bok(navn=bok_navn, antall=value["antall"]))
-    return liste
-
-
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def get_all_books():
-    conn = get_db_connection()
-    books = conn.execute('SELECT * FROM books').fetchall()
-    conn.close()
-    return books
-
-
-def get_book(book_id):
-    conn = get_db_connection()
-    book = conn.execute('SELECT * FROM books WHERE id = ?',
-                        (book_id,)).fetchone()
-    conn.close()
-    return book
-
-
-def get_book_by_title(title):
-    conn = get_db_connection()
-    book = conn.execute('SELECT * FROM books WHERE title = ?',
-                        (title,)).fetchone()
-    conn.close()
-    return book
 
 
 load_dotenv()
@@ -87,11 +39,12 @@ app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# try:
-# init_db_command()
-# except sqlite3.OperationalError:
-# pass
+try:
+    init_db_command()
+except sqlite3.OperationalError:
+    pass
 
+# Set up a client for loging in to google
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 
@@ -118,12 +71,9 @@ def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 
-def SQL_to_csv(edit):
-    return SQL_to_csv
-
-
 @app.route("/login")
 def login():
+    """Show a google login page"""
     # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
@@ -135,6 +85,8 @@ def login():
         scope=["openid", "email", "profile"],
     )
     print(request_uri)
+
+    # Redirect to url
     return redirect(request_uri)
 
 
@@ -187,6 +139,13 @@ def callback():
     login_user(user)
 
     return redirect(url_for("redirect_to_index"))
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("index"))
 
 
 @app.route('/<int:book_id>')
@@ -259,13 +218,6 @@ def delete(id):
     conn.close()
     flash('"{}" was successfully deleted!'.format(post['title']))
     return redirect(url_for('index')), SQL_to_csv(edit)
-
-
-@app.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

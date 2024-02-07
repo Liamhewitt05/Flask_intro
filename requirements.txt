@@ -10,3 +10,4 @@ python-dotenv
 azure-storage-file-datalake
 azure-identity
 pandas
+chardet
